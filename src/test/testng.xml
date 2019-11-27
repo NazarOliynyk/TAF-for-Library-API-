@@ -1,0 +1,38 @@
+
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+
+
+<suite name="Suite" verbose="1"   parallel="none">
+
+<test name="Author Tests">
+    <classes>
+        <class name="ua.com.epam.authorTests.CreateNewAuthorTest"/>
+        <class name="ua.com.epam.authorTests.DeleteExistingAuthorTest"/>
+        <class name="ua.com.epam.authorTests.GetAuthorByBookId"/>
+        <class name="ua.com.epam.authorTests.GetAuthorByIdTest"/>
+        <class name="ua.com.epam.authorTests.GetAuthorByNameAndSurname"/>
+        <class name="ua.com.epam.authorTests.GetAuthorsInExistingGenre"/>
+        <class name="ua.com.epam.authorTests.GetAuthorsWithOptionsTest"/>
+        <class name="ua.com.epam.authorTests.UpdateExistingAuthor"/>
+    </classes>
+</test>
+<test name="Book Test">
+    <classes>
+        <class name="ua.com.epam.bookTests.CreateNewBookTest"/>
+        <class name="ua.com.epam.bookTests.DeleteExistingBookTest"/>
+        <class name="ua.com.epam.bookTests.GetAllBooksByExistingAuthor"/>
+        <class name="ua.com.epam.bookTests.GetAllBooksTest"/>
+        <class name="ua.com.epam.bookTests.GetBookByIdTest"/>
+    </classes>
+</test>
+    <test name="Genre Test">
+        <classes>
+            <class name="ua.com.epam.genreTests.DeleteExistingGenreTest"/>
+            <class name="ua.com.epam.genreTests.GetGenreByBook"/>
+            <class name="ua.com.epam.genreTests.GetGenreByIdTest"/>
+            <class name="ua.com.epam.genreTests.SearchForGenreByName"/>
+            <class name="ua.com.epam.genreTests.UpdateExistingGenre"/>
+        </classes>
+    </test>
+
+</suite>
