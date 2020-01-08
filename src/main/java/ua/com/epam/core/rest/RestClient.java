@@ -2,6 +2,7 @@ package ua.com.epam.core.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.minidev.json.JSONObject;
 import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -24,9 +25,20 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
+import static ua.com.epam.config.URI.AUTHENTICATION_URI;
 import static ua.com.epam.config.URI.BASE_URI;
+import static ua.com.epam.utils.JsonKeys.AUTH_PASSWORD;
+import static ua.com.epam.utils.JsonKeys.AUTH_USERNAME;
 
 public class RestClient {
+
+    //in the constructor- get authenticated before running all tests
+    public RestClient() {
+        this.authenticate(AUTHENTICATION_URI);
+    }
+
+    private String authorization = "";
+
     private static Logger log = Logger.getLogger(RestClient.class);
 
     //custom Response object (wrapper)
@@ -44,6 +56,46 @@ public class RestClient {
         return this.response;
     }
 
+    public String getAuthorization() {
+        return authorization;
+    }
+
+    public void setAuthorization(String authorization) {
+        this.authorization = authorization;
+    }
+
+    //POST authorization json
+    public void authenticate(String uri) {
+
+        HttpPost request = new HttpPost(BASE_URI + uri);
+        JSONObject json = new JSONObject();
+        json.put("username", AUTH_USERNAME);
+        json.put("password", AUTH_PASSWORD);
+        request.setHeader(HttpHeaders.ACCEPT, "application/json");
+        try {
+            StringEntity bodyToPost= new StringEntity(json.toString());
+            request.setEntity(bodyToPost);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        HttpResponse response = null;
+        try {
+            log.info("Perform POST auth request to: " + request.getURI().toString());
+            response = client.execute(request); //execute request and write response
+            String header = String.valueOf(response.getFirstHeader("Authorization"));
+            authorization = header.substring(15);
+        } catch (ClientProtocolException e) {
+            log.error("HTTP protocol error!");
+            e.printStackTrace();
+        } catch (IOException e) {
+            log.error("Some problems occur or the connection was aborted!");
+            e.printStackTrace();
+        }
+
+        wrapResponse(response);
+    }
+
     //GET just take only URI as String
     public void get(String uri) {
         //create exactly GET http request. It assume String with URI
@@ -52,7 +104,7 @@ public class RestClient {
         //set header
         //here we say to API, that we expect especially JSON in response
         request.setHeader(HttpHeaders.ACCEPT, "application/json");
-
+        request.addHeader("Authorization", authorization );
         //here we create HttpResponse object
         HttpResponse response = null;
         try {
@@ -74,7 +126,7 @@ public class RestClient {
     public void post(String uri, Object body) {
         HttpPost request = new HttpPost(BASE_URI + uri);
         request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
-
+        request.addHeader("Authorization", authorization);
         String reqB = g.toJson(body);
 
         HttpResponse response = null;
@@ -104,7 +156,7 @@ public class RestClient {
     public void put(String uri, Object body) {
         HttpPut request = new HttpPut(BASE_URI + uri);
         request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
-
+        request.addHeader("Authorization", authorization );
         String reqB = g.toJson(body);
 
         HttpResponse response = null;
@@ -132,7 +184,7 @@ public class RestClient {
     public void delete(String uri) {
         HttpDelete request = new HttpDelete(BASE_URI + uri);
         request.setHeader(HttpHeaders.ACCEPT, "application/json");
-
+        request.addHeader("Authorization", authorization );
         HttpResponse response = null;
 
         try {

@@ -1,18 +1,35 @@
 package ua.com.epam;
 
+//klov-server imports  ----
+import com.aventstack.extentreports.ExtentReports;
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.Status;
+import com.aventstack.extentreports.markuputils.ExtentColor;
+import com.aventstack.extentreports.markuputils.MarkupHelper;
+import com.aventstack.extentreports.reporter.ExtentHtmlReporter;
+import com.aventstack.extentreports.reporter.KlovReporter;
+import org.testng.ITestResult;
+//-------------------
+
+import ua.com.epam.service.AuthorService;
+import ua.com.epam.service.BookService;
+import ua.com.epam.service.GenreService;
+
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 import ua.com.epam.core.rest.RestClient;
 import ua.com.epam.entity.author.Author;
 import ua.com.epam.entity.book.Book;
 import ua.com.epam.entity.genre.Genre;
-import ua.com.epam.service.BookService;
 import ua.com.epam.service.CleanUpService;
-import ua.com.epam.service.GenreService;
 import ua.com.epam.utils.DataFactory;
-import ua.com.epam.service.AuthorService;
 import ua.com.epam.validators.ValidatorFactory;
 
+import java.lang.reflect.Method;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Random;
 
@@ -20,6 +37,69 @@ import static ua.com.epam.config.URI.POST_AUTHOR_SINGLE_OBJ;
 import static ua.com.epam.config.URI.POST_GENRE_SINGLE_OBJ;
 
 public class BaseTest {
+
+    // klov-server fields and methods ------
+
+    private static ExtentHtmlReporter extentHtmlReporter;
+    private static ExtentReports extent;
+    private static ExtentTest extentTest;
+
+    private void setExtentHtmlReporter() {
+        extentHtmlReporter = new ExtentHtmlReporter("Report.html");
+        extent = new ExtentReports();
+        Calendar calendar = new GregorianCalendar();
+        KlovReporter klov = new KlovReporter();
+        klov.initMongoDbConnection("ec2-3-15-161-91.us-east-2.compute.amazonaws.com",27017);
+        klov.setProjectName("test api books");
+        klov.setKlovUrl("http://ec2-3-15-161-91.us-east-2.compute.amazonaws.com/:7777");
+        klov.setReportName("SecondTryKlovTest - api books: " + calendar.getTime());
+        extent.attachReporter(extentHtmlReporter, klov);
+    }
+
+    private void setTestName(String testName) {
+
+        extentTest = extent.createTest(testName);
+    }
+
+    private void extentHtmlReporterQuit() {
+        if (extentHtmlReporter != null) {
+            extentHtmlReporter = null;
+        }
+    }
+
+    @BeforeSuite
+    public void beforeSuite() {
+
+        setExtentHtmlReporter();
+    }
+
+    @BeforeMethod
+    public void beforeMethod(Method method) {
+        System.out.println(method.getName());
+        setTestName(method.getName());
+    }
+
+    @AfterMethod
+    public void getResult(ITestResult result) {
+        if (result.getStatus() == ITestResult.FAILURE) {
+            extentTest.log(Status.FAIL, MarkupHelper.createLabel(result.getName() + " FAILED ", ExtentColor.RED));
+            extentTest.fail(result.getThrowable());
+        } else if (result.getStatus() == ITestResult.SUCCESS) {
+            extentTest.log(Status.PASS, MarkupHelper.createLabel(result.getName() + " PASSED ", ExtentColor.GREEN));
+        } else {
+            extentTest.log(Status.SKIP, MarkupHelper.createLabel(result.getName() + " SKIPPED ", ExtentColor.ORANGE));
+            extentTest.skip(result.getThrowable());
+        }
+
+    }
+
+    @AfterSuite
+    public void afterSuiteFlush() {
+        extent.flush();
+        extentHtmlReporterQuit();
+    }
+
+    // ------------------------------------------------------------------------
 
     private RestClient client = new RestClient();
 
@@ -31,11 +111,12 @@ public class BaseTest {
     protected Author randomeAuthor = testData.authors().getRandomOne();
     private List<Author> authorList = testData.authors().getDefaultAuthors();
 
+    protected AuthorService authorService = new AuthorService();
     protected BookService bookService = new BookService();
     protected Book randomBook = testData.books().getRandomBook();
     private List<Book> bookList = testData.books().getDefaultBooks();
 
-    protected GenreService genreService = new GenreService();
+    //protected GenreService genreService = new GenreService();
     protected Genre randomGenre = testData.genres().getRandomGenre();
     private List<Genre> genreList = testData.genres().getDefaultGenres();
 

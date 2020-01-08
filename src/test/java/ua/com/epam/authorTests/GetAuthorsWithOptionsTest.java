@@ -8,6 +8,7 @@ package ua.com.epam.authorTests;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import ua.com.epam.BaseTest;
+import ua.com.epam.entity.Response;
 
 import static ua.com.epam.utils.JsonKeys.AUTHOR_ID;
 import static ua.com.epam.utils.JsonKeys.DESCENDING;
@@ -24,13 +25,20 @@ public class GetAuthorsWithOptionsTest extends BaseTest {
     @Test(description = "Get first 10 authors sorted by authorId in descending order")
     public void getDifferentAuthorsWithOptions() {
 
+        Response response =
+                authorService.getAuthorListByParams(
+                        DESCENDING,
+                        1,
+                        true,
+                        10,
+                        AUTHOR_ID);
+        // 200 -ok
+        validatorFactory.authorValidator().
+                checkCode(response, 200);
+
         validatorFactory.
                 authorValidator().
-                getDifferentAuthorsWithOptions(DESCENDING,
-                1,
-                true,
-                10,
-                AUTHOR_ID);
+                getDifferentAuthorsWithOptions(response,10);
     }
 
 }

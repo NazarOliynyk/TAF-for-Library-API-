@@ -15,4 +15,8 @@ public interface JsonKeys {
 
     String ASCENDING = "asc";
     String DESCENDING = "desc";
+
+    String AUTH_USERNAME = "defaultUser";
+    String AUTH_PASSWORD = "defaultPassword";
+
 }
